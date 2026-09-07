@@ -4,7 +4,7 @@
 
 ### Basic setup
 - Create a script in GameMaker
-	- Copy everything from [GMStash.gml](https://codeberg.org/maklore/GMStash/src/branch/main/GMStash.gml)
+	- Copy everything from [GMStash.gml](https://github.com/maklore/GMStash/blob/main/GMStash.gml)
 	- Paste to script file
 
 - Create your first stash.
