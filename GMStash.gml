@@ -1,7 +1,7 @@
-// For the stash to function, the item structs require these keys in the root struct.
+// For the stash to function, the item structs require* these keys in the root struct.
 #macro GMSTASH_CONSUMABLE	"is_consumable" //Boolean
-#macro GMSTASH_AMOUNT		"amount" //Only required if consumable
-#macro GMSTASH_AMOUNT_MAX	"amount_max" //Only required if consumable
+#macro GMSTASH_AMOUNT		"amount" //*Only required if consumable
+#macro GMSTASH_AMOUNT_MAX	"amount_max" //*Only required if consumable
 
 /**
  * A "simple" stash manager. 
