@@ -190,7 +190,7 @@ function GMStash() {
 	 * Temporarily captures item from the index slot of the active stash
 	 * @param {real} _index Active stash slot index
 	 */
-	static hold = function(_index) {
+	static capture = function(_index) {
 		if __held_index != -1 { 
 			return __held_index;
 		}
@@ -207,6 +207,7 @@ function GMStash() {
 	/**
 	 * Releases temporarily captured item to set index of the active stash
 	 * @param {real} _index Active stash slot index
+	 * @param {string} _target_stash Optional. Default is active stash.
 	 */
 	static release = function(_index, _target_stash = __active_stash) {
 		if is_undefined(__held_item) { exit; }
