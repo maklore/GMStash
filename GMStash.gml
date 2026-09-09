@@ -1,7 +1,7 @@
-// For the stash to function, the item structs require* these keys in the root struct.
+//Text in red can be used as keys in item structs.
 #macro GMSTASH_CONSUMABLE	"is_consumable" //Boolean
-#macro GMSTASH_AMOUNT		"amount" //*Only required if consumable
-#macro GMSTASH_AMOUNT_MAX	"amount_max" //*Only required if consumable
+#macro GMSTASH_AMOUNT		"amount"		//Only required if consumable
+#macro GMSTASH_AMOUNT_MAX	"amount_max"	//Only required if consumable
 
 /**
  * A "simple" stash manager. 
@@ -15,23 +15,23 @@ function GMStash() {
 	
 	static __held_index = -1;
 	
-	static __held_item = {};
+	static __held_item = undefined;
 	
-	static __active_stash = "";
+	static __active_stash = undefined;
 	
 	/**
-	 * Create a named stash with set size.
+	 * Create a named stash with set size
 	 * @param {string} _name Name
 	 * @param {real} _size Size
 	 */
 	static create = function(_name, _size) {
 		if struct_exists(__stash, _name) { exit; }
 		__stash[$ _name] = array_create(_size, undefined);
-		__active_stash = _name;
+		__active_stash ??= _name;
 	}
 	
 	/**
-	 * Set the active stash.
+	 * Set the active stash
 	 * @param {string} _name Name
 	 */
 	static active = function(_name) {
@@ -52,7 +52,7 @@ function GMStash() {
 			var _slot_check = __stash[$ __active_stash][i];
 			if !is_undefined(_slot_check) and _slot_check.name == _name {
 				
-				if !_item[$ GMSTASH_CONSUMABLE] {
+				if !struct_exists(_item, GMSTASH_CONSUMABLE) or !_item[$ GMSTASH_CONSUMABLE] {
 					return i;	
 				} else if _slot_check[$ GMSTASH_AMOUNT] < _slot_check[$ GMSTASH_AMOUNT_MAX] {
 					return i;
@@ -86,7 +86,7 @@ function GMStash() {
 	static get = function(_index) {
 		return __stash[$ __active_stash][_index];
 	}
-
+	
 	/**
 	 * Get name stash
 	 * @param {string} _name Name
@@ -94,13 +94,12 @@ function GMStash() {
 	static get_stash = function(_name) {
 		return __stash[$ _name];
 	}
-    
+	
 	/**
 	 * Removes item at set index from the active stash
 	 * @param {real} _index Active stash slot index
 	 */
 	static remove = function(_index) {
-		array_delete(__stash[$ __active_stash], _index, 1);
 		array_set(__stash[$ __active_stash], _index, undefined);
 	}
 	
@@ -160,9 +159,9 @@ function GMStash() {
 	static add = function(_item) {
 		
 		var _slot = find(_item);
-		if !is_undefined(_slot) { 
+		if !is_undefined(_slot) and struct_exists(_slot, GMSTASH_CONSUMABLE) { 
 			increase(_slot, _item[$ GMSTASH_AMOUNT]);
-			exit;
+			return true;
 		}
 		
 		_slot = empty();
@@ -170,7 +169,7 @@ function GMStash() {
 			return _item; 
 		}
 		
-		if _item.is_consumable and _item[$ GMSTASH_AMOUNT] > _item[$ GMSTASH_AMOUNT_MAX] {
+		if struct_exists(_slot, GMSTASH_CONSUMABLE) and _item[$ GMSTASH_AMOUNT] > _item[$ GMSTASH_AMOUNT_MAX] {
 			
 			var _remaining_amount = _item[$ GMSTASH_AMOUNT] - _item[$ GMSTASH_AMOUNT_MAX];
 			_item[$ GMSTASH_AMOUNT] = _item[$ GMSTASH_AMOUNT_MAX];
@@ -179,11 +178,12 @@ function GMStash() {
 			var _item_remainder = variable_clone(_item);
 			_item_remainder[$ GMSTASH_AMOUNT] = _remaining_amount;
 			__add_restart(_item_remainder);
-			exit;
+			return true;
 		}
 
 		array_set(__stash[$ __active_stash], _slot, _item);
-	
+		
+		return true;
 	}
 		
 	/**
@@ -192,20 +192,27 @@ function GMStash() {
 	 */
 	static hold = function(_index) {
 		if __held_index != -1 { 
-			return __held_index; 
+			return __held_index;
 		}
+		
 		__held_index = _index;
 		__held_item = __stash[$ __active_stash][__held_index];
+		if is_undefined(__held_item) {
+			__held_index = -1;
+			__held_item = {};
+		}
+		return __held_index;
 	}
 	
 	/**
 	 * Releases temporarily captured item to set index of the active stash
 	 * @param {real} _index Active stash slot index
 	 */
-	static release = function(_index) {
-		__swap(_index);
+	static release = function(_index, _target_stash = __active_stash) {
+		if is_undefined(__held_item) { exit; }
+		__swap(_index, _target_stash);
 		__held_index = -1;
-		__held_item = {};
+		__held_item = undefined;
 	}
 	
 	/// @ignore
@@ -219,9 +226,9 @@ function GMStash() {
 	}
 	
 	/// @ignore
-	static __swap = function(_index) {
-		__stash[$ __active_stash][__held_index] = __stash[$ __active_stash][_index];
-		__stash[$ __active_stash][_index] = __held_item;
+	static __swap = function(_index, _target_stash) {
+		__stash[$ __active_stash][__held_index] = __stash[$ _target_stash][_index];
+		__stash[$ _target_stash][_index] = __held_item;
 	}
 	
 	return static_get(GMStash);
