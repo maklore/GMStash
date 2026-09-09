@@ -13,9 +13,9 @@ function GMStash() {
 		
 	static __stash = {};
 	
-	static __held_index = -1;
+	static __captured_index = -1;
 	
-	static __held_item = undefined;
+	static __captured_item = undefined;
 	
 	static __active_stash = undefined;
 	
@@ -191,17 +191,17 @@ function GMStash() {
 	 * @param {real} _index Active stash slot index
 	 */
 	static capture = function(_index) {
-		if __held_index != -1 { 
-			return __held_index;
+		if __captured_index != -1 { 
+			return __captured_index;
 		}
 		
-		__held_index = _index;
-		__held_item = __stash[$ __active_stash][__held_index];
-		if is_undefined(__held_item) {
-			__held_index = -1;
-			__held_item = {};
+		__captured_index = _index;
+		__captured_item = __stash[$ __active_stash][__captured_index];
+		if is_undefined(__captured_item) {
+			__captured_index = -1;
+			__captured_item = {};
 		}
-		return __held_index;
+		return __captured_index;
 	}
 	
 	/**
@@ -210,10 +210,10 @@ function GMStash() {
 	 * @param {string} _target_stash Optional. Default is active stash.
 	 */
 	static release = function(_index, _target_stash = __active_stash) {
-		if is_undefined(__held_item) { exit; }
+		if is_undefined(__captured_item) { exit; }
 		__swap(_index, _target_stash);
-		__held_index = -1;
-		__held_item = undefined;
+		__captured_index = -1;
+		__captured_item = undefined;
 	}
 	
 	/// @ignore
@@ -228,8 +228,8 @@ function GMStash() {
 	
 	/// @ignore
 	static __swap = function(_index, _target_stash) {
-		__stash[$ __active_stash][__held_index] = __stash[$ _target_stash][_index];
-		__stash[$ _target_stash][_index] = __held_item;
+		__stash[$ __active_stash][__captured_index] = __stash[$ _target_stash][_index];
+		__stash[$ _target_stash][_index] = __captured_item;
 	}
 	
 	return static_get(GMStash);
